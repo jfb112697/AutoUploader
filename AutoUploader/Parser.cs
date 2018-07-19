@@ -26,6 +26,10 @@ namespace AutoUploader
         public List<KeyValuePair<string, string>> parse()
         {
             string input = File.ReadAllText(VarFileName);
+            if(fileType == null)
+            {
+                return null;
+            }
             switch (fileType)
             {
                 case "json":
@@ -40,12 +44,31 @@ namespace AutoUploader
                     break;
                     //TODO: Parse X/HT ML
             }
+            return null;
 
         }
 
         private void setFileType(string value)
         {
-
+            string fileName = value.ToLower();
+            if (fileName.Contains("json"))
+            {
+                fileType = "json";
+            }
+            else if (fileName.Contains("html"))
+            {
+                fileType = "html";
+            }
+            else if (fileName.Contains("xml"))
+            {
+                fileType = "xml";
+            }
+            else
+            {
+                System.Windows.MessageBox.Show("Could not find supported file type, please navigate to a JSON, HTML or XML file.");
+                fileType = null;
+            }
+            
         }
 
         /*public static List<KeyValuePair<string, string>> parseXml(string input)

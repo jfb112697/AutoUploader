@@ -41,7 +41,7 @@ namespace AutoUploader
 
         private void variableButton_Click(object sender, RoutedEventArgs e)
         {
-            wrapPanel.Children.Add(new GroupBox() { MinWidth = 150, MaxWidth = 250, Content = new ComboBox() { ItemsSource = values }, Header = variableBox.Text });
+            wrapPanel.Children.Add(new GroupBox() { MinWidth = 150, MaxWidth = 250, Content = new ComboBox() { ItemsSource = values, DisplayMemberPath = "Value" }, Header = variableBox.Text });
             variableBox.Text = "";
         }
 
@@ -57,7 +57,7 @@ namespace AutoUploader
                 string value = combo.Text;
                 if (value != "")
                 {
-                    int? index = values.IndexOf(values.First(k => k.Value == value));
+                    int? index = (int?)values.IndexOf(values.First(k => k.Value == value));
                     if (index != null)
                     {
                         varIndex.Add(varName, (int)index);

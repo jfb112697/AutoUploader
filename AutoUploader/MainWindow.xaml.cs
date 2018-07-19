@@ -87,14 +87,15 @@ namespace AutoUploader
         {
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Multiselect = false;
-            dialog.ShowDialog();
             dialog.CheckFileExists = true;
-            if(dialog.FileName != null)
-            {
-                VarFilePath = dialog.FileName;
+            if (dialog.ShowDialog() != false) {
+                if (dialog.FileName != null)
+                {
+                    VarFilePath = dialog.FileName;
+                }
+                VariableWindow window = new VariableWindow(this, VarFilePath);
+                window.Show();
             }
-            VariableWindow window = new VariableWindow(this, VarFilePath);
-            window.Show();
         }
 
         private void titleBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -109,6 +110,7 @@ namespace AutoUploader
             draftObject.StreamControlPath = this.VarFilePath;
             draftObject.TitleTemplate = this.TitleTemplate;
             draftObject.DescriptionTemplate = this.DescriptionTemplate;
+            draftObject.VariableIndex = this.VariableIndex;
 
             File.WriteAllText("settings.json", Newtonsoft.Json.JsonConvert.SerializeObject(draftObject));
         }
@@ -124,6 +126,17 @@ namespace AutoUploader
                     this.VarFilePath = draftObject.StreamControlPath;
                     titleBox.Text = draftObject.TitleTemplate;
                     descriptionBox.Text = draftObject.DescriptionTemplate;
+                    if(draftObject.VariableIndex != null)
+                    {
+                        Dictionary<string, int> varIndex = new Dictionary<string, int>();
+                        foreach(var keyValue in draftObject.VariableIndex)
+                        {
+                            Console.WriteLine(keyValue.Name);
+                            varIndex.Add(keyValue.Name, (int)keyValue.Value);
+                        }
+                        VariableIndex = varIndex;
+                        dataGrid.ItemsSource = varIndex;
+                    }
                 }
             }
         }
@@ -156,17 +169,28 @@ namespace AutoUploader
                 }
                 oldSize = info.Length;
             }
-            Regex placeholder = new Regex("{{ .* }}");
+            Regex placeholder = new Regex("{{ .*? }}");
             string title = TitleTemplate + "";
             var matches = placeholder.Matches(title);
             List<KeyValuePair<string, string>> parsed = new List<KeyValuePair<string, string>>();
-            foreach(Match match in matches)
+            foreach (var varIndex in VariableIndex)
             {
-                string vName = match.Groups[1].Value;
-                int index = VariableIndex[vName];
-                title = title.Replace(match.Value, parsed[index].Value);
+                title = title.Replace("{{ " + varIndex.Key + " }}", parsed[varIndex.Value].Value);
             }
             File.Move(e.FullPath, RecordingDirectory + "\\" + title + e.FullPath.Split('.')[1]); //TODO: Probably shell this out & build title string better
+        }
+
+        private void button_Click_1(object sender, RoutedEventArgs e)
+        {
+            Regex placeholder = new Regex("{{ .*? }}");
+            string title = TitleTemplate + "";
+            var matches = placeholder.Matches(title);
+            List<KeyValuePair<string, string>> parsed = parser.parse();
+            foreach(var varIndex in VariableIndex)
+            {
+                title = title.Replace("{{ " + varIndex.Key + " }}", parsed[varIndex.Value].Value);
+            }
+            MessageBox.Show(title);
         }
     }
 }
