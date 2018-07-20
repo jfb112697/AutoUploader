@@ -23,7 +23,7 @@ namespace AutoUploader
     public partial class VariableWindow : Window
     {
         private MainWindow main;
-        List<string> variables = new List<string>() { "Player 1 Name", "Player 2 Name", "Player 1 Character", "Player 2 Character" };
+        List<string> variables = new List<string>() { "Player 1 Name", "Player 2 Name", "Player 1 Character", "Player 2 Character", "Round"};
         List<KeyValuePair<string, string>> values = new List<KeyValuePair<string, string>>();
         Dictionary<string, int> varIndex = new Dictionary<string, int>();
         private string varFilePath;
@@ -33,15 +33,25 @@ namespace AutoUploader
             this.main = main;
             values = main.parser.parse();
             InitializeComponent();
+            if(main.VariableIndex != null)
+            {
+                foreach(var keyvalue in main.VariableIndex)
+                {
+                    if (!variables.Contains(keyvalue.Key))
+                    {
+                        variables.Add(keyvalue.Key);
+                    }
+                }
+            }
             foreach(var v in variables)
             {
-                wrapPanel.Children.Add(new GroupBox() { MinWidth = 150, MaxWidth = 250, Content = new ComboBox() { ItemsSource = values, DisplayMemberPath = "Value"}, Header = v });
+                wrapPanel.Children.Add(new GroupBox() { MinWidth = 150, MaxWidth = 250, Content = new ComboBox() { ItemsSource = values}, Header = v });
             }
         }
 
         private void variableButton_Click(object sender, RoutedEventArgs e)
         {
-            wrapPanel.Children.Add(new GroupBox() { MinWidth = 150, MaxWidth = 250, Content = new ComboBox() { ItemsSource = values, DisplayMemberPath = "Value" }, Header = variableBox.Text });
+            wrapPanel.Children.Add(new GroupBox() { MinWidth = 150, MaxWidth = 250, Content = new ComboBox() { ItemsSource = values }, Header = variableBox.Text });
             variableBox.Text = "";
         }
 
@@ -54,7 +64,8 @@ namespace AutoUploader
                 GroupBox g = c as GroupBox;
                 string varName = g.Header.ToString();
                 ComboBox combo = g.Content as ComboBox;
-                string value = combo.Text;
+                KeyValuePair<string, string> item = (KeyValuePair<string, string>)combo.SelectedItem;
+                string value = item.Value;
                 if (value != "")
                 {
                     int? index = (int?)values.IndexOf(values.First(k => k.Value == value));

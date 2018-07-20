@@ -1,10 +1,7 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using HtmlAgilityPack;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AutoUploader
 {
@@ -25,6 +22,7 @@ namespace AutoUploader
         public Parser() { }
         public List<KeyValuePair<string, string>> parse()
         {
+            List<KeyValuePair<string, string>> values = new List<KeyValuePair<string, string>>();
             string input = File.ReadAllText(VarFileName);
             if(fileType == null)
             {
@@ -33,7 +31,7 @@ namespace AutoUploader
             switch (fileType)
             {
                 case "json":
-                    List<KeyValuePair<string, string>> values = new List<KeyValuePair<string, string>>();
+                    
                     var jsonValues = JsonConvert.DeserializeObject<Dictionary<string, object>>(input);
                     foreach (var v in jsonValues)
                     {
@@ -42,7 +40,17 @@ namespace AutoUploader
                     }
                     return values;
                     break;
-                    //TODO: Parse X/HT ML
+                case "xml":
+                    HtmlDocument document = new HtmlDocument();
+                    document.LoadHtml(input);
+                    var nodes = document.DocumentNode.SelectNodes("//text()[normalize-space()]");
+                    foreach (var node in nodes)
+                    {
+                        KeyValuePair<string, string> value = new KeyValuePair<string, string>(node.ParentNode.Name, node.InnerHtml);
+                        values.Add(value);
+                    }
+                    return values;
+                    break;
             }
             return null;
 
@@ -57,7 +65,7 @@ namespace AutoUploader
             }
             else if (fileName.Contains("html"))
             {
-                fileType = "html";
+                fileType = "xml";
             }
             else if (fileName.Contains("xml"))
             {
@@ -70,10 +78,5 @@ namespace AutoUploader
             }
             
         }
-
-        /*public static List<KeyValuePair<string, string>> parseXml(string input)
-        {
-
-        }*/
     }
 }
